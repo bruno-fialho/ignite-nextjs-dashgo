@@ -1,6 +1,27 @@
-import { Box, Flex, Heading, Button, Icon, Table, Thead, Tr, Th, Checkbox, Tbody, Td, Text, useBreakpointValue } from "@chakra-ui/react";
+import { useEffect } from 'react';
 import Link from "next/link";
-import { RiAddLine, RiPencilLine } from "react-icons/ri";
+
+import { 
+  Box,
+  Flex,
+  Heading,
+  Button,
+  Icon,
+  Table,
+  Thead,
+  Tr,
+  Th,
+  Checkbox,
+  Tbody,
+  Td,
+  Text,
+  useBreakpointValue
+ } from "@chakra-ui/react";
+
+import { 
+  RiAddLine,
+  RiPencilLine
+ } from "react-icons/ri";
 
 import Header from "../../components/Header";
 import Pagination from "../../components/Pagination";
@@ -11,6 +32,12 @@ export default function UserList() {
     base: false,
     lg: true,
   });
+
+  useEffect(() => {
+    fetch('http://localhost:3000/api/users')
+      .then(response => response.json())
+      .then(data => console.log(data));
+  }, []);
 
   return (
     <Box>
