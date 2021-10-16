@@ -3,15 +3,33 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Link from "next/link";
+import { useMutation } from 'react-query';
 
 import { Input } from "../../components/Form/input";
 import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
 
+import { queryClient } from "../../services/queryClient";
+import { api } from "../../services/api";
+import { useRouter } from "next/router";
+
+type CreatedUser = {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  created_at: string;
+}
+
 type CreateUserFormData = {
   name: string;
   email: string;
   password: string;
+}
+
+type PostResponse = {
+  user: CreatedUser;
 }
 
 const createUserFormSchema = yup.object().shape({
@@ -24,16 +42,33 @@ const createUserFormSchema = yup.object().shape({
 });
 
 export default function CreateUser() {
-  const { register, handleSubmit, formState } = useForm({
+  const router = useRouter();
+
+  const createUser = useMutation(async (user: CreateUserFormData) => {
+    const response = await api.post<PostResponse>('users', {
+      user: {
+        ...user,
+        created_at: new Date(),
+      } 
+    });
+
+    return response.data.user;
+  }, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['users', 1])
+    }
+  });
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: yupResolver(createUserFormSchema)
   });
-  const { errors } = formState;
 
   const handleCreateUser: SubmitHandler<CreateUserFormData> = async (values) => {
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await createUser.mutateAsync(values);
 
-    console.log(values);
+    router.push('/users');
   }
+
   return (
     <Box>
       <Header />
@@ -96,7 +131,7 @@ export default function CreateUser() {
               <Button
                 type="submit"
                 colorScheme="pink"
-                isLoading={formState.isSubmitting}
+                isLoading={isSubmitting}
               >
                 Salvar
               </Button>
